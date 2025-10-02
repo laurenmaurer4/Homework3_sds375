@@ -1,0 +1,94 @@
+---
+title: 'SDS 375 Data Product Development: Homework 3'
+author: "Lauren Maurer"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, warning=FALSE}
+dat <- read.csv('homework3_data.csv')
+
+library(colorfindr)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+## Creating color palette
+
+web <- get_colors("web1.png")
+web
+
+plot_colors(web[1:100, ])
+
+cols<- make_palette(web[1:100,])
+cols
+
+my_colors <- c(
+  "Old Design" = '#BA78AF',
+  "New Design" ='#6fc6d9'
+)
+
+```
+
+
+
+## Recommendation
+
+The company should commit to the redesign for the website.
+
+## Supporting Evidence
+
+
+```{r}
+# Supporting Plots
+
+# Make design a factor for better labels and colors
+dat$design_label <- factor(dat$design, levels = c(0, 1),
+                            labels = c("Old Design", "New Design"))
+
+# Histogram
+ggplot(dat, aes(x = sales,)) +
+  geom_histogram(bins=15, fill = "#152D62") +
+  facet_wrap(~design_label, ncol = 1) +
+  labs(title = "Sales by Design",
+       x = "Design", y = "Sales")
+
+# Box plot
+ggplot(dat, aes(x = factor(design), y = sales, fill = factor(design_label)))+
+  geom_boxplot() +
+  labs(title = "Boxplot of Sales by Design",
+       x = "Design", y = "Sales",
+       fill = "Design Label") +
+  scale_fill_manual(values = my_colors)
+```
+
+In the faceted histogram the graph of the new design is shifted to the right showing an average increase in sales compared to the old design. The box plot of the new design is shifted up indicating an increase in median sales. The median sales for the old design is around 32 and the median sales for the new design is around 35. Both of these plots support that the website should be redesigned. 
+
+
+```{r}
+# Linear model
+model <- lm(sales ~ design, data = dat)
+summary(model)
+
+# Calculate difference in means
+mean_new <- mean(dat$sales[dat$design == 0])
+mean_old <- mean(dat$sales[dat$design == 1])
+mean_diff <- mean_new - mean_old
+
+
+old <- dat$sales[dat$design == 0]
+new <- dat$sales[dat$design == 1]
+
+# One-sided t-test
+ttest <- t.test(new, old, alternative = "greater", mu = 1.80)
+
+```
+Conducting a t-test for the difference in means between the old design and the new design shows that there is statistical evidence that there is an average increase of at least \$1.80. The p-value is `r signif(ttest$p.value,3)`, which is very small and indicates statistical significance. If the redesign is done there is an estimated $3.66 increase for each customer. 
+
+## Alternative Statement
+Recommendation: Do the redesign because it will increase sales.
+
+Alternative: The redesign would not increase sales even though the data suggests it would.
